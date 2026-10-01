@@ -1,0 +1,63 @@
+{
+  "model": {
+    "d_model": 1024,
+    "n_layers": 12,
+    "n_compute_rows": 8,
+    "n_channels": 128,
+    "n_steps": 6,
+    "n_modes": 8,
+    "perception_kernels": [
+      3,
+      5,
+      7
+    ],
+    "step_size_init": 0.1,
+    "n_hw_channels": 16,
+    "hw_mod_interval": 3,
+    "hw_ema_decay": 0.95,
+    "ffn_multiplier": 2.6666666666666665,
+    "ffn_type": "swiglu",
+    "max_seq_len": 1024,
+    "vocab_size": 50257,
+    "dropout": 0.1,
+    "lambda_helm": 0.01,
+    "lambda_pathway_balance": 0.01,
+    "lambda_hw_smooth": 0.1,
+    "gradient_checkpointing": true
+  },
+  "train": {
+    "lr": 0.0006,
+    "weight_decay": 0.1,
+    "betas": [
+      0.9,
+      0.95
+    ],
+    "eps": 1e-08,
+    "grad_clip": 1.0,
+    "warmup_steps": 200,
+    "total_steps": 7630,
+    "batch_size": 8,
+    "seq_len": 1024,
+    "grad_accum_steps": 4,
+    "eval_interval": 250,
+    "eval_batches": 20,
+    "save_interval": 1000,
+    "save_dir": "checkpoints/v4_160m_pile_250m",
+    "use_amp": true,
+    "log_interval": 10,
+    "device": "cuda"
+  },
+  "checkpoint": {
+    "global_step": 7500,
+    "best_val_loss_logged": 3.317983841896057,
+    "released_weights": {
+      "file": "dpnca_160m_best_fp16.safetensors",
+      "sha256": "1538dd9c23872aba2179ffa829a1f493b320d9bfdb83f7a4d24ba811652b8fe7",
+      "bytes": 317816544,
+      "n_tensors": 471,
+      "tied_weights_omitted": {
+        "output_head.weight": "embedding.embedding.weight"
+      }
+    }
+  }
+}

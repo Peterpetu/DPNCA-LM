@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this code or the released weights, please cite it as below."
+title: "DPNCA-LM: an attention-free language model built on an iterative neural cellular automaton"
+authors:
+  - family-names: Lahtinen
+    given-names: Peter
+year: 2026
+url: "https://github.com/Peterpetu/DPNCA-LM"
+license: MIT

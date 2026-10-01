@@ -1,0 +1,18 @@
+# data caches and checkpoints (released weights are a GitHub Release asset)
+data_cache/
+checkpoints/
+*.pt
+*.safetensors
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store

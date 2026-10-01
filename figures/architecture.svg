@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 700" width="1100" height="700" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#898781"/>
+    </marker>
+    <style>
+      .t { fill:#0b0b0b; font-size:13px; }
+      .s { fill:#52514e; font-size:11px; }
+      .m { fill:#898781; font-size:10.5px; }
+      .h { fill:#0b0b0b; font-size:15px; font-weight:600; }
+      .box { fill:#ffffff; stroke:#c3c2b7; stroke-width:1; rx:6; }
+      .novel { fill:#eaf2fc; stroke:#2a78d6; stroke-width:1.4; rx:6; }
+      .loop { fill:none; stroke:#2a78d6; stroke-width:1.2; stroke-dasharray:4 3; rx:8; }
+      .line { stroke:#898781; stroke-width:1.2; fill:none; marker-end:url(#arr); }
+      .res { stroke:#c3c2b7; stroke-width:1.2; fill:none; marker-end:url(#arr); }
+      .cell { fill:#dbe8f9; stroke:#ffffff; stroke-width:1; }
+      .cellk { fill:#2a78d6; stroke:#ffffff; stroke-width:1; }
+      .cellq { fill:#eb6834; stroke:#ffffff; stroke-width:1; }
+    </style>
+  </defs>
+  <rect width="1100" height="700" fill="#fcfcfb"/>
+
+  <!-- ===================== LEFT: data path ===================== -->
+  <text x="40" y="38" class="h">DPNCA-LM data path (158,881,044 parameters)</text>
+
+  <rect x="40" y="58" width="300" height="40" class="box"/>
+  <text x="52" y="76" class="t">input_ids  (B, L) = (8, 1024)</text>
+  <text x="52" y="92" class="s">GPT-2 BPE, vocab 50,257</text>
+
+  <path d="M190 98 V 118" class="line"/>
+  <rect x="40" y="118" width="300" height="46" class="box"/>
+  <text x="52" y="137" class="t">Token embedding E (50257 × 1024) + RoPE</text>
+  <text x="52" y="154" class="s">51.46M params · tied with the output head</text>
+
+  <path d="M190 164 V 186" class="line"/>
+  <!-- layer stack -->
+  <rect x="24" y="186" width="332" height="284" class="box" style="fill:#f9f9f7"/>
+  <text x="36" y="206" class="t">× 12   NCATransformerLayer</text>
+  <text x="36" y="222" class="s">pre-norm residual block, 8.95M params each</text>
+
+  <rect x="56" y="234" width="268" height="30" class="box"/>
+  <text x="68" y="254" class="t">LayerNorm</text>
+  <path d="M190 264 V 282" class="line"/>
+  <rect x="56" y="282" width="268" height="44" class="novel"/>
+  <text x="68" y="300" class="t">NCABlock  — replaces the attention sublayer</text>
+  <text x="68" y="317" class="s">542K params/layer · the only cross-position mixing</text>
+  <!-- residual 1 -->
+  <path d="M340 220 V 334 H 330" class="res"/>
+  <text x="300" y="347" class="m">+ residual</text>
+  <path d="M190 326 V 346" class="line"/>
+  <rect x="56" y="346" width="268" height="30" class="box"/>
+  <text x="68" y="366" class="t">LayerNorm</text>
+  <path d="M190 376 V 394" class="line"/>
+  <rect x="56" y="394" width="268" height="44" class="box"/>
+  <text x="68" y="412" class="t">SwiGLU FFN   d_ff = 2736</text>
+  <text x="68" y="429" class="s">8.40M/layer · position-local · 93.9% of non-embedding</text>
+  <path d="M340 380 V 446 H 330" class="res"/>
+  <text x="300" y="459" class="m">+ residual</text>
+
+  <path d="M190 470 V 492" class="line"/>
+  <rect x="40" y="492" width="300" height="46" class="box"/>
+  <text x="52" y="511" class="t">LayerNorm → output head = E^T (tied)</text>
+  <text x="52" y="528" class="s">logits (B, L, 50257) → cross-entropy</text>
+
+  <text x="40" y="566" class="s">Training: AdamW lr 6e-4, cosine schedule, 200 warmup steps,</text>
+  <text x="40" y="582" class="s">AMP, grad-accum 4, 32,768 tokens/step, 7,630 steps = 250M Pile tokens,</text><text x="40" y="598" class="s">seed 42, 19.1 h on one RTX 4080 SUPER at 3,637 tok/s.</text>
+  <text x="40" y="624" class="s">Causality verified bit-exact on the trained model:</text><text x="40" y="640" class="s">perturbing token t changes no logit at any position &lt; t.</text>
+
+  <!-- ===================== RIGHT: NCA block ===================== -->
+  <text x="420" y="38" class="h">Inside the NCABlock (per layer)</text>
+
+  <!-- reshape -->
+  <rect x="420" y="58" width="650" height="112" class="box"/>
+  <text x="432" y="78" class="t">1 · Reshape the residual stream into a grid of cells</text>
+  <text x="432" y="96" class="s">x (B, L, d=1024)  →  G[b, c, r, l] = x[b, l, r·128 + c]   i.e.  (B, C=128, R=8, L)</text>
+  <text x="432" y="113" class="s">R = 8 slices of the same token's 1024 channels (not 8 positions)  ·  L is the only axis that carries token order.</text>
+
+  <!-- small grid illustration -->
+  <g transform="translate(760,122)">
+    <!-- 8 rows x 12 cols -->
+    <g id="grid">
+      <rect x="0" y="0" width="14" height="5" class="cell"/>
+    </g>
+  </g>
+  <g transform="translate(690,122)">
+    <!-- draw cells programmatically expanded -->
+    <rect x="0"   y="0"  width="11" height="5" class="cell"/><rect x="12"  y="0"  width="11" height="5" class="cell"/><rect x="24"  y="0"  width="11" height="5" class="cell"/><rect x="36"  y="0"  width="11" height="5" class="cell"/><rect x="48"  y="0"  width="11" height="5" class="cellk"/><rect x="60"  y="0"  width="11" height="5" class="cellk"/><rect x="72"  y="0"  width="11" height="5" class="cellk"/><rect x="84"  y="0"  width="11" height="5" class="cellq"/><rect x="96"  y="0"  width="11" height="5" class="cell"/><rect x="108" y="0"  width="11" height="5" class="cell"/><rect x="120" y="0"  width="11" height="5" class="cell"/><rect x="132" y="0"  width="11" height="5" class="cell"/>
+    <rect x="0"   y="6"  width="11" height="5" class="cell"/><rect x="12"  y="6"  width="11" height="5" class="cell"/><rect x="24"  y="6"  width="11" height="5" class="cell"/><rect x="36"  y="6"  width="11" height="5" class="cell"/><rect x="48"  y="6"  width="11" height="5" class="cellk"/><rect x="60"  y="6"  width="11" height="5" class="cellk"/><rect x="72"  y="6"  width="11" height="5" class="cellk"/><rect x="84"  y="6"  width="11" height="5" class="cellq"/><rect x="96"  y="6"  width="11" height="5" class="cell"/><rect x="108" y="6"  width="11" height="5" class="cell"/><rect x="120" y="6"  width="11" height="5" class="cell"/><rect x="132" y="6"  width="11" height="5" class="cell"/>
+    <rect x="0"   y="12" width="11" height="5" class="cell"/><rect x="12"  y="12" width="11" height="5" class="cell"/><rect x="24"  y="12" width="11" height="5" class="cell"/><rect x="36"  y="12" width="11" height="5" class="cell"/><rect x="48"  y="12" width="11" height="5" class="cellk"/><rect x="60"  y="12" width="11" height="5" class="cellk"/><rect x="72"  y="12" width="11" height="5" class="cellk"/><rect x="84"  y="12" width="11" height="5" class="cellq"/><rect x="96"  y="12" width="11" height="5" class="cell"/><rect x="108" y="12" width="11" height="5" class="cell"/><rect x="120" y="12" width="11" height="5" class="cell"/><rect x="132" y="12" width="11" height="5" class="cell"/>
+    <rect x="0"   y="18" width="11" height="5" class="cell"/><rect x="12"  y="18" width="11" height="5" class="cell"/><rect x="24"  y="18" width="11" height="5" class="cell"/><rect x="36"  y="18" width="11" height="5" class="cell"/><rect x="48"  y="18" width="11" height="5" class="cell"/><rect x="60"  y="18" width="11" height="5" class="cell"/><rect x="72"  y="18" width="11" height="5" class="cell"/><rect x="84"  y="18" width="11" height="5" class="cell"/><rect x="96"  y="18" width="11" height="5" class="cell"/><rect x="108" y="18" width="11" height="5" class="cell"/><rect x="120" y="18" width="11" height="5" class="cell"/><rect x="132" y="18" width="11" height="5" class="cell"/>
+    <rect x="0"   y="24" width="11" height="5" class="cell"/><rect x="12"  y="24" width="11" height="5" class="cell"/><rect x="24"  y="24" width="11" height="5" class="cell"/><rect x="36"  y="24" width="11" height="5" class="cell"/><rect x="48"  y="24" width="11" height="5" class="cell"/><rect x="60"  y="24" width="11" height="5" class="cell"/><rect x="72"  y="24" width="11" height="5" class="cell"/><rect x="84"  y="24" width="11" height="5" class="cell"/><rect x="96"  y="24" width="11" height="5" class="cell"/><rect x="108" y="24" width="11" height="5" class="cell"/><rect x="120" y="24" width="11" height="5" class="cell"/><rect x="132" y="24" width="11" height="5" class="cell"/>
+    <rect x="0"   y="30" width="11" height="5" class="cell"/><rect x="12"  y="30" width="11" height="5" class="cell"/><rect x="24"  y="30" width="11" height="5" class="cell"/><rect x="36"  y="30" width="11" height="5" class="cell"/><rect x="48"  y="30" width="11" height="5" class="cell"/><rect x="60"  y="30" width="11" height="5" class="cell"/><rect x="72"  y="30" width="11" height="5" class="cell"/><rect x="84"  y="30" width="11" height="5" class="cell"/><rect x="96"  y="30" width="11" height="5" class="cell"/><rect x="108" y="30" width="11" height="5" class="cell"/><rect x="120" y="30" width="11" height="5" class="cell"/><rect x="132" y="30" width="11" height="5" class="cell"/>
+    <rect x="0"   y="36" width="11" height="5" class="cell"/><rect x="12"  y="36" width="11" height="5" class="cell"/><rect x="24"  y="36" width="11" height="5" class="cell"/><rect x="36"  y="36" width="11" height="5" class="cell"/><rect x="48"  y="36" width="11" height="5" class="cell"/><rect x="60"  y="36" width="11" height="5" class="cell"/><rect x="72"  y="36" width="11" height="5" class="cell"/><rect x="84"  y="36" width="11" height="5" class="cell"/><rect x="96"  y="36" width="11" height="5" class="cell"/><rect x="108" y="36" width="11" height="5" class="cell"/><rect x="120" y="36" width="11" height="5" class="cell"/><rect x="132" y="36" width="11" height="5" class="cell"/>
+    <rect x="0"   y="42" width="11" height="5" class="cell"/><rect x="12"  y="42" width="11" height="5" class="cell"/><rect x="24"  y="42" width="11" height="5" class="cell"/><rect x="36"  y="42" width="11" height="5" class="cell"/><rect x="48"  y="42" width="11" height="5" class="cell"/><rect x="60"  y="42" width="11" height="5" class="cell"/><rect x="72"  y="42" width="11" height="5" class="cell"/><rect x="84"  y="42" width="11" height="5" class="cell"/><rect x="96"  y="42" width="11" height="5" class="cell"/><rect x="108" y="42" width="11" height="5" class="cell"/><rect x="120" y="42" width="11" height="5" class="cell"/><rect x="132" y="42" width="11" height="5" class="cell"/>
+  </g>
+  <text x="850" y="128" class="m">R = 8 rows (toroidal)</text>
+  <text x="850" y="142" class="m">L = sequence →  (causal: left-pad only)</text>
+  <text x="850" y="156" class="m">dark blue: k=7 causal stencil → orange cell</text>
+
+  <!-- loop -->
+  <rect x="420" y="184" width="650" height="330" class="loop"/>
+  <text x="432" y="204" class="t">2 · Iterate T = 6 NCA steps with the same weights   (12 layers × 6 = 72 applications per forward pass)</text>
+
+  <rect x="432" y="216" width="626" height="62" class="novel"/>
+  <text x="444" y="234" class="t">(a) Perceive — depthwise causal Conv2d, kernels k in {3, 5, 7}, groups = C</text>
+  <text x="444" y="251" class="s">P = [G | dwConv3(G) | dwConv5(G) | dwConv7(G)] → (B, 512, R, L). Circular pad over R; causal left-pad over L.</text>
+  <text x="444" y="268" class="s" textLength="600" lengthAdjust="spacingAndGlyphs">132,096 parameters across all 12 layers = 0.083% of the model — the only place information moves between positions.</text>
+
+  <path d="M745 278 V 294" class="line"/>
+  <rect x="432" y="294" width="626" height="48" class="box"/>
+  <text x="444" y="312" class="t">(b) Route — α = softmax( W_gate · H / T ) over M = 8 pathway modes</text>
+  <text x="444" y="329" class="s" textLength="600" lengthAdjust="spacingAndGlyphs">H = 16 "hardware" channels per cell, updated once per layer from running stats. The trunk's only softmax; never over positions.</text>
+
+  <path d="M745 342 V 358" class="line"/>
+  <rect x="432" y="358" width="626" height="48" class="box"/>
+  <text x="444" y="376" class="t">(c) Mix — Δ_m = W_m · P + b_m,   ΔG = Σ_m α_m · Δ_m</text>
+  <text x="444" y="393" class="s">Per-position affine map over the 512 perceived channels; 8 banks of (128 × 512). 6.3M params over 12 layers.</text>
+
+  <path d="M745 406 V 422" class="line"/>
+  <rect x="432" y="422" width="626" height="48" class="box"/>
+  <text x="444" y="440" class="t">(d) Step — G ← G + η_s · LayerNorm_C(ΔG),   then dropout (training only)</text>
+  <text x="444" y="457" class="s">η_s: one learned scalar per step; LayerNorm over each cell's 128 channels independently — no mixing.</text>
+
+  <path d="M1040 470 V 216" class="line" style="marker-end:url(#arr)"/>
+  <text x="900" y="492" class="m">repeat for s = 0 … 5</text>
+
+  <!-- flatten -->
+  <path d="M745 514 V 532" class="line"/>
+  <rect x="420" y="532" width="650" height="40" class="box"/>
+  <text x="432" y="550" class="t">3 · Flatten back:  (B, C, R, L) → (B, L, 1024)  — the exact inverse of step 1 — and add to the residual stream</text>
+  <text x="432" y="566" class="s">Receptive field ceiling = N·T·(k_max − 1) + 1 = 12·6·6 + 1 = 433 tokens of the 1,024-token context.</text>
+
+  <text x="420" y="606" class="m">Blue boxes: the components that replace attention. Everything outside them is a standard pre-norm transformer skeleton.</text>
+  <text x="420" y="624" class="m">Optional V5 modules (Hebbian associative memory, causal aggregation, gated fusion) exist in the code; all were disabled in this run.</text>
+</svg>
