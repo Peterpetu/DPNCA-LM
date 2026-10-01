@@ -46,7 +46,7 @@ For comparison, a GPT-2-class transformer spends roughly a third of its non-embe
 
 ## Verify it yourself
 
-The released weights are a GitHub Release asset (fp16, 318 MB, 471 tensors; the tied output head is omitted and re-tied at load):
+The released weights are the asset of GitHub Release [`v1.0`](https://github.com/Peterpetu/DPNCA-LM/releases/tag/v1.0) (fp16, 318 MB, 471 tensors; the tied output head is omitted and re-tied at load):
 
 ```
 dpnca_160m_best_fp16.safetensors
