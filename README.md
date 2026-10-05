@@ -111,7 +111,11 @@ The optional V5 modules (`memory.py`, `aggregation.py`, gated fusion) are part o
 
 ## License and citation
 
-MIT. If you use the code or the weights, please cite:
+The code and any released weights are licensed under the Apache License 2.0 (`LICENSE`); the documentation, figures and data under CC BY 4.0. Both require attribution: a copy or derivative of the code keeps the `NOTICE` file, and any reuse of the text, figures or data credits the author and links to the source.
+
+If you use this work, build on it, or report results obtained with it, cite it:
+
+> Lahtinen, P. (2026). *DPNCA-LM: an attention-free language model built on an iterative neural cellular automaton.* https://github.com/Peterpetu/DPNCA-LM
 
 ```bibtex
 @misc{lahtinen2026dpnca,
@@ -121,3 +125,5 @@ MIT. If you use the code or the weights, please cite:
   url    = {https://github.com/Peterpetu/DPNCA-LM}
 }
 ```
+
+`CITATION.cff` carries the same reference for GitHub's "Cite this repository" button and for reference managers.

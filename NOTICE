@@ -1,0 +1,13 @@
+DPNCA-LM: an attention-free language model built on an iterative neural cellular automaton
+Copyright 2026 Peter Lahtinen
+https://github.com/Peterpetu/DPNCA-LM
+
+This work was created by Peter Lahtinen. Redistributions of it, with or without
+modification, in source or any other form, must retain this notice (Apache License
+2.0, section 4(d)). The documentation, figures and data in this repository are
+licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), which
+requires that any reuse credit the author and link to the source.
+
+If you use this work, build on it, or report results obtained with it, cite:
+
+  Lahtinen, P. (2026). DPNCA-LM: an attention-free language model built on an iterative neural cellular automaton. https://github.com/Peterpetu/DPNCA-LM
